@@ -6,6 +6,7 @@ import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import units.People;
 import units.Unit;
+import units.UnitFactory;
 import windows.Land;
 import windows.Menu;
 import windows.Window;
@@ -45,8 +46,13 @@ public class MainEngine {
                 initFirstRun();
             }
 
-
+            gameIteration();
         }
+    }
+
+    // Итерация мира
+    private void gameIteration() {
+
     }
 
     private Window getWindow(WindowType type) {
@@ -73,11 +79,7 @@ public class MainEngine {
         main.addNewWorldListener(a -> {
             Land land = (Land) getWindow(WindowType.LAND);
 
-            for (var i = 0; i< Settings.numberOfUnits;i++) {
-                People people = new People();
-                System.out.println(i);
-                units.add(people);
-            }
+            units.addAll(UnitFactory.initFirstPeoples());
 
             land.addUnits(units);
             land.reloadStateWindow();

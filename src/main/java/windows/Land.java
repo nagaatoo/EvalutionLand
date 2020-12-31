@@ -1,6 +1,6 @@
 package windows;
 
-import net.miginfocom.layout.Grid;
+import common.Settings;
 import units.Unit;
 
 import javax.swing.*;
@@ -9,18 +9,18 @@ import java.util.List;
 
 public class Land extends Window {
 
-    private JTable table = new JTable();
-    private JButton pauseAndStart = new JButton("Старт");
-    private JLabel numberOfUnit = new JLabel();
-    private JLabel numberOfMan = new JLabel();
-    private JLabel numberOfWoman = new JLabel();
+    private final JPanel tableIn = new JPanel();
+    private final JButton pauseAndStart = new JButton("Старт");
+    private final JLabel numberOfUnit = new JLabel();
+    private final JLabel numberOfMan = new JLabel();
+    private final JLabel numberOfWoman = new JLabel();
 
     @Override
     public Window init() {
         super.init();
         this.setResizable(true);
+//        table.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED, Color.BLACK, Color.WHITE));
 
-//        var layout = new GridLayout(2, 1);
         var layout = new BorderLayout();
         var boardConstrain = new JPanel(layout);
         boardConstrain.add(buildFieldBar(), BorderLayout.CENTER);
@@ -28,7 +28,8 @@ public class Land extends Window {
 
         this.add(boardConstrain);
         this.setPreferredSize(new Dimension(1000, 1000));
-        pack();
+
+        this.revalidate();
         return this;
     }
 
@@ -45,17 +46,23 @@ public class Land extends Window {
 
     @Override
     protected Dimension initSize() {
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int width = (int) screenSize.getWidth();
-        int height = (int) screenSize.getHeight();
-
+//        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         return new Dimension(1024, 768);
     }
 
     public void addUnits(List<Unit> units) {
+        int count = 0;
         for (Unit unit : units) {
-            table.add(unit);
+            tableIn.add(unit);
+            System.out.println(count++);
         }
+
+        initUnits();
+    }
+
+    private void initUnits() {
+//        table.revalidate();
+//        table.repaint();
     }
 
     private Component buildMenuBar() {
@@ -84,14 +91,15 @@ public class Land extends Window {
 
     private Component buildFieldBar() {
         // Список компонентов формы
-        var table = new JPanel(new GridLayout(1000, 1000));
-        table.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
-        table.setPreferredSize(new Dimension(10000, 1000));
-        var scroll = new JScrollPane(table);
-//        scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-//        scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-//        scroll.setMaximumSize(new Dimension(1024, 768));
-//        scroll.setMinimumSize(new Dimension(1024, 768));
+        int sizeSide = (int) Math.sqrt(Settings.getFieldSize());
+        GridLayout layout = new GridLayout(sizeSide, sizeSide);
+        System.out.println(layout.toString());
+        tableIn.setLayout(layout);
+        tableIn.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 2));
+        tableIn.setVisible(true);
+        var scroll = new JScrollPane(tableIn);
+
+        scroll.setVisible(true);
         return scroll;
     }
 
