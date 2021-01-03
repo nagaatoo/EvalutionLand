@@ -1,13 +1,18 @@
 package windows;
 
 import common.Settings;
+import engine.MainEngine;
+import units.EmptyUnit;
 import units.Unit;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.*;
 import java.util.List;
 
 public class Land extends Window {
+
+    private final Random random = new Random();
 
     private final JPanel tableIn = new JPanel();
     private final JButton pauseAndStart = new JButton("Старт");
@@ -29,6 +34,7 @@ public class Land extends Window {
         this.add(boardConstrain);
         this.setPreferredSize(new Dimension(1000, 1000));
 
+        initButtonsListeners();
         this.revalidate();
         return this;
     }
@@ -51,18 +57,38 @@ public class Land extends Window {
     }
 
     public void addUnits(List<Unit> units) {
-        int count = 0;
+        Map<Integer, Unit> positions = new HashMap<>();
         for (Unit unit : units) {
-            tableIn.add(unit);
-            System.out.println(count++);
+            int index = getIndex(positions.keySet());
+            positions.put(index, unit);
         }
 
-        initUnits();
+        int fieldSize = Settings.getInstance().getFieldSize();
+        int dimension = (int) Math.sqrt(fieldSize);
+        for (var i = 0; i < fieldSize; i++) {
+            Unit unit = positions.get(i);
+            if (unit != null) {
+                unit.setPosition(i % dimension, i / dimension);
+                tableIn.add(unit, i);
+            } else {
+                tableIn.add(new EmptyUnit(), i);
+            }
+        }
     }
 
-    private void initUnits() {
-//        table.revalidate();
-//        table.repaint();
+    public Land setNumberOfPeople(int number) {
+        this.numberOfUnit.setText(String.valueOf(number));
+        return this;
+    }
+
+    public Land setNumberOfMan(int number) {
+        this.numberOfMan.setText(String.valueOf(number));
+        return this;
+    }
+
+    public Land setNumberOfWoman(int number) {
+        this.numberOfWoman.setText(String.valueOf(number));
+        return this;
     }
 
     private Component buildMenuBar() {
@@ -91,7 +117,7 @@ public class Land extends Window {
 
     private Component buildFieldBar() {
         // Список компонентов формы
-        int sizeSide = (int) Math.sqrt(Settings.getFieldSize());
+        int sizeSide = (int) Math.sqrt(Settings.getInstance().getFieldSize());
         GridLayout layout = new GridLayout(sizeSide, sizeSide);
         System.out.println(layout.toString());
         tableIn.setLayout(layout);
@@ -101,6 +127,32 @@ public class Land extends Window {
 
         scroll.setVisible(true);
         return scroll;
+    }
+
+    private void initButtonsListeners() {
+
+        if (pauseAndStart.getActionListeners().length == 0) {
+            pauseAndStart.addActionListener(l -> {
+                if (!MainEngine.run) {
+                    MainEngine.run = true;
+                    pauseAndStart.setText("Стоп");
+                    System.out.println("Стоп");
+                } else {
+                    MainEngine.run = false;
+                    pauseAndStart.setText("Старт");
+                    System.out.println("Старт");
+                }
+            });
+        }
+    }
+
+    private int getIndex(Collection<Integer> pos) {
+        int index = random.nextInt(Settings.getInstance().getFieldSize());
+        if (pos.contains(index)) {
+            getIndex(pos);
+        }
+
+        return index;
     }
 
 }

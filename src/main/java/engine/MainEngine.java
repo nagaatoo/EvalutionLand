@@ -1,6 +1,7 @@
 package engine;
 
 import common.Settings;
+import enums.Gender;
 import org.reflections.Reflections;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
@@ -17,7 +18,18 @@ import java.util.*;
 public class MainEngine {
 
     private boolean isFirstRun = true;
+    public static boolean run = false;
     private final static List<Window> windows = new ArrayList<>();
+
+    private final Land land;
+
+    {
+        land = (Land) windows.stream()
+                .filter(w -> w.getWindowType().equals(WindowType.LAND))
+                .map(w -> !w.isInitial() ? w.init() : w)
+                .findFirst()
+                .orElseThrow(NoSuchElementException::new);
+    }
 
     private final List<Unit> units = new ArrayList<>();
 
@@ -26,28 +38,57 @@ public class MainEngine {
                 new ConfigurationBuilder().setUrls(ClasspathHelper.forJavaClassPath()));
 
         List<Class<? extends Window>> classes = new ArrayList<>(reflections.getSubTypesOf(Window.class));
-        classes.forEach(clazz ->  {
+        classes.forEach(clazz -> {
             try {
                 windows.add(clazz.newInstance());
             } catch (InstantiationException | IllegalAccessException e) {
                 e.printStackTrace();
             }
         });
+
+        // Инициализация дефолтных настроек
+        Settings.initSettings();
     }
 
     // Главный цикл приложения
     public void run() {
-        while (true) {
-            if (windows.isEmpty()) {
-                throw new NoSuchElementException();
-            }
 
-            if (isFirstRun) {
-                initFirstRun();
-            }
-
-            gameIteration();
+        if (isFirstRun) {
+            initFirstRun();
         }
+
+        if (windows.isEmpty()) {
+            throw new NoSuchElementException();
+        }
+
+        while (true) {
+
+            if (run) {
+                updateLabels();
+                gameIteration();
+            }
+
+        }
+    }
+
+    private void updateLabels() {
+        int numberOfMan = (int) units.stream()
+                .filter(u -> !u.isEmptyUnit())
+                .filter(u -> Gender.M.equals(u.getGender()))
+                .count();
+
+        int numbberOfWoman = (int) units.stream()
+                .filter(u -> !u.isEmptyUnit())
+                .filter(u -> Gender.F.equals(u.getGender()))
+                .count();
+
+        int numberOfPeople = (int) units.stream()
+                .filter(u -> !u.isEmptyUnit())
+                .count();
+
+        land.setNumberOfPeople(numberOfPeople)
+                .setNumberOfMan(numberOfMan)
+                .setNumberOfWoman(numbberOfWoman);
     }
 
     // Итерация мира
@@ -69,7 +110,6 @@ public class MainEngine {
         isFirstRun = false;
 
         main.addContinueWorldListener(a -> {
-            Window land = getWindow(WindowType.LAND);
             main.hideWindow();
             land.showWindow();
 
@@ -77,8 +117,6 @@ public class MainEngine {
         });
 
         main.addNewWorldListener(a -> {
-            Land land = (Land) getWindow(WindowType.LAND);
-
             units.addAll(UnitFactory.initFirstPeoples());
 
             land.addUnits(units);
@@ -86,6 +124,7 @@ public class MainEngine {
             main.hideWindow();
             land.showWindow();
             land.pack();
+            updateLabels();
         });
 
         main.addLoadListener(a -> {

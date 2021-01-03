@@ -62,9 +62,10 @@ public final class UnitFactory {
         do {
             Gender gender = random.nextInt(2) == 0 ? Gender.M : Gender.F;
             String name = "Василий";
+
             // TODO блок с болячками
             newUnits.add(createPeople(gender, name, null, null, diseases));
-        } while (newUnits.size() != Settings.getBeginNumberOfUnits());
+        } while (newUnits.size() != Settings.getInstance().getBeginNumberOfUnits());
 
         return newUnits;
     }
